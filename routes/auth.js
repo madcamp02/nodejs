@@ -1,3 +1,4 @@
+// routes/auth.js
 const express = require('express');
 const passport = require('passport');
 require('../config/auth'); // GitHub OAuth 설정 파일을 불러옵니다.

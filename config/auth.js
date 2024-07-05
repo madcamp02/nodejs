@@ -1,3 +1,4 @@
+// config/auth.js
 const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
 require('dotenv').config();

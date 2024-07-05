@@ -1,3 +1,4 @@
+// index.js
 const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
@@ -16,6 +17,12 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((obj, done) => {
   done(null, obj);
 });
+
+// app.js 또는 index.js
+console.log(process.env.GITHUB_CLIENT_ID);
+console.log(process.env.GITHUB_CLIENT_SECRET);
+console.log(process.env.SESSION_SECRET);
+
 
 passport.use(new GitHubStrategy({
   clientID: 'YOUR_GITHUB_CLIENT_ID',
