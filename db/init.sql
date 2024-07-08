@@ -7,18 +7,18 @@ USE gitcat_db;
 CREATE TABLE IF NOT EXISTS Users (
     user_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_name VARCHAR(255) NOT NULL,
-    github_id BIGINT,
+    user_github_id BIGINT UNIQUE,
     access_token VARCHAR(255) NOT NULL,
-    owner_ids JSON
+    owner_id_list JSON
 );
 
 -- Owner 테이블 생성
 CREATE TABLE IF NOT EXISTS Owners (
     owner_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     is_organization TINYINT(1) NOT NULL DEFAULT 0,
-    owner_github_id BIGINT,
+    owner_github_id BIGINT UNIQUE,
     owner_name VARCHAR(255) NOT NULL,
-    repo_ids JSON
+    repo_id_list JSON
 );
 
 -- Repository 테이블 생성
@@ -26,8 +26,9 @@ CREATE TABLE IF NOT EXISTS Repositories (
     repo_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     repo_name VARCHAR(255) NOT NULL,
     repo_url VARCHAR(255) NOT NULL,
-    owner_id BIGINT,
-    FOREIGN KEY (owner_id) REFERENCES Owners(owner_id)
+    owner_github_id BIGINT,
+    repo_github_id BIGINT,
+    UNIQUE (owner_github_id, repo_github_id)
 );
 
 -- Milestones 테이블 생성
@@ -38,7 +39,10 @@ CREATE TABLE IF NOT EXISTS Milestones (
     mlstn_due DATE,
     mlstn_descr VARCHAR(255),
     repo_id BIGINT,
-    FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id)
+    owner_github_id BIGINT,
+    repo_github_id BIGINT,
+    mlstn_github_id BIGINT,
+    UNIQUE (owner_github_id, repo_github_id, mlstn_github_id)
 );
 
 -- Issue 테이블 생성
@@ -47,28 +51,36 @@ CREATE TABLE IF NOT EXISTS Issues (
     issue_title VARCHAR(255) NOT NULL,
     issue_state TINYINT(1),
     mlstn_id BIGINT,
-    label_ids JSON,
-    FOREIGN KEY (mlstn_id) REFERENCES Milestones(mlstn_id)
+    label_id_list JSON,
+    owner_github_id BIGINT,
+    repo_github_id BIGINT,
+    issue_github_id BIGINT,
+    UNIQUE (owner_github_id, repo_github_id, issue_github_id)
 );
 
 -- Label 테이블 생성
 CREATE TABLE IF NOT EXISTS Labels (
     label_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     label_name VARCHAR(50),
-    label_color VARCHAR(7)
+    label_color VARCHAR(7),
+    owner_github_id BIGINT,
+    repo_github_id BIGINT,
+    label_github_id BIGINT,
+    UNIQUE (owner_github_id, repo_github_id, label_github_id)
 );
 
 -- Commit 테이블 생성 (외래 키 없이)
 CREATE TABLE IF NOT EXISTS Commits (
     commit_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     ai_labeled TINYINT(1),
-    repo_id BIGINT,
     commit_msg TEXT,
     commit_date DATETIME,
-    commit_image VARCHAR(255),
     til_id BIGINT DEFAULT NULL,
-    issue_ids JSON,
-    FOREIGN KEY (repo_id) REFERENCES Repositories(repo_id)
+    issue_id_list JSON,
+    owner_github_id BIGINT,
+    repo_github_id BIGINT,
+    commit_github_id CHAR(40),
+    UNIQUE (owner_github_id, repo_github_id, commit_github_id)
 );
 
 -- TIL 테이블 생성 (외래 키 없이)
@@ -82,12 +94,3 @@ CREATE TABLE IF NOT EXISTS TILs (
     FOREIGN KEY (user_id) REFERENCES Users(user_id),
     FOREIGN KEY (commit_id) REFERENCES Commits(commit_id)
 );
-
--- -- 외래 키 추가
--- ALTER TABLE Commit
--- ADD CONSTRAINT fk_commit_repo_id FOREIGN KEY (repo_id) REFERENCES Repository(repo_id),
--- ADD CONSTRAINT fk_commit_til_id FOREIGN KEY (til_id) REFERENCES TIL(til_id);
-
--- ALTER TABLE TIL
--- ADD CONSTRAINT fk_til_user_id FOREIGN KEY (user_id) REFERENCES User(user_id),
--- ADD CONSTRAINT fk_til_commit_id FOREIGN KEY (commit_id) REFERENCES Commit(commit_id);

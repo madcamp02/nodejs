@@ -47,7 +47,6 @@ initializeDatabase();
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to GitCat</h1><a href="/auth/github">Login with GitHub</a>');
 });
-
 // GitHub 인증 라우트
 app.get('/auth/github',
   passport.authenticate('github', { scope: ['user:email'] })

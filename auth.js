@@ -28,11 +28,11 @@ module.exports = (passport) => {
       const username = profile.username;
 
       // 사용자 정보 데이터베이스에 저장 또는 업데이트
-      const [rows] = await db.execute('SELECT * FROM Users WHERE github_id = ?', [githubId]);
+      const [rows] = await db.execute('SELECT * FROM Users WHERE user_github_id = ?', [githubId]);
       if (rows.length === 0) {
-        await db.execute('INSERT INTO Users (github_id, access_token, user_name) VALUES (?, ?, ?)', [githubId, accessToken, username]);
+        await db.execute('INSERT INTO Users (user_github_id, access_token, user_name) VALUES (?, ?, ?)', [githubId, accessToken, username]);
       } else {
-        await db.execute('UPDATE Users SET access_token = ? WHERE github_id = ?', [accessToken, githubId]);
+        await db.execute('UPDATE Users SET access_token = ? WHERE user_github_id = ?', [accessToken, githubId]);
       }
       return done(null, profile);
     } catch (err) {
