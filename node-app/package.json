@@ -1,10 +1,10 @@
 {
-    "name": "node-app",
+    "name": "gitcat",
     "version": "1.0.0",
     "description": "",
-    "main": "index.js",
+    "main": "server.js",
     "scripts": {
-      "start": "node index.js"
+      "start": "node server.js"
     },
     "dependencies": {
       "express": "^4.17.1",
