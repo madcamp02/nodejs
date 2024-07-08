@@ -10,7 +10,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: pass
-      MYSQL_DATABASE: mydb
+      MYSQL_DATABASE: gitcatDB
 
   node-app:
     build: ./node-app
@@ -23,4 +23,4 @@ services:
       DB_HOST: db
       DB_USER: root
       DB_PASSWORD: pass
-      DB_NAME: mydb
+      DB_NAME: gitcatDB
