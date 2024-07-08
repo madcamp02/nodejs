@@ -1,6 +1,6 @@
 -- 데이터베이스 생성 및 사용
-CREATE DATABASE IF NOT EXISTS gitcatDB;
-USE gitcatDB;
+CREATE DATABASE IF NOT EXISTS gitcat_db;
+USE gitcat_db;
 
 -- User 테이블 생성
 CREATE TABLE IF NOT EXISTS User (
@@ -57,7 +57,7 @@ CREATE TABLE IF NOT EXISTS Label (
     label_color VARCHAR(7)
 );
 
--- Commit 테이블 생성
+-- Commit 테이블 생성 (외래 키 없이)
 CREATE TABLE IF NOT EXISTS Commit (
     commit_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     ai_labeled TINYINT(1),
@@ -66,29 +66,24 @@ CREATE TABLE IF NOT EXISTS Commit (
     commit_date DATETIME,
     commit_image VARCHAR(255),
     til_id BIGINT DEFAULT NULL,
-    issue_ids JSON,
-    FOREIGN KEY (repo_id) REFERENCES Repository(repo_id),
-    FOREIGN KEY (til_id) REFERENCES TIL(til_id)
+    issue_ids JSON
 );
 
--- TIL 테이블 생성
+-- TIL 테이블 생성 (외래 키 없이)
 CREATE TABLE IF NOT EXISTS TIL (
     til_id BIGINT AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT,
     til_content TEXT,
     commit_id BIGINT,
     commit_msg TEXT,
-    commit_date DATETIME,
-    FOREIGN KEY (user_id) REFERENCES User(user_id),
-    FOREIGN KEY (commit_id) REFERENCES Commit(commit_id)
+    commit_date DATETIME
 );
 
--- 초기 데이터 삽입 (예시)
-INSERT INTO User (user_name, github_id, access_token, owner_ids) VALUES
-('exampleuser', 123456, 'exampletoken', '[]');
+-- 외래 키 추가
+ALTER TABLE Commit
+ADD CONSTRAINT fk_commit_repo_id FOREIGN KEY (repo_id) REFERENCES Repository(repo_id),
+ADD CONSTRAINT fk_commit_til_id FOREIGN KEY (til_id) REFERENCES TIL(til_id);
 
-INSERT INTO Owner (is_organization, owner_github_id, owner_name, repo_ids) VALUES
-(0, 123456, 'My Repos', '[]');
-
-INSERT INTO Repository (repo_name, repo_url, owner_id) VALUES
-('example-repo', 'https://github.com/exampleuser/example-repo', 1);
+ALTER TABLE TIL
+ADD CONSTRAINT fk_til_user_id FOREIGN KEY (user_id) REFERENCES User(user_id),
+ADD CONSTRAINT fk_til_commit_id FOREIGN KEY (commit_id) REFERENCES Commit(commit_id);
