@@ -3,30 +3,15 @@ const fs = require('fs');
 const express = require('express');
 const passport = require('passport');
 const session = require('express-session');
-const mysql = require('mysql2/promise');
+const morgan = require('morgan');
+const { initializeDatabase } = require('./models/db');
 const auth = require('./auth');
 
 const app = express();
 const PORT = 3000;
 
-// MySQL 초기화 함수
-const initializeDatabase = async () => {
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: 'root',
-      password: process.env.DB_PASSWORD,
-      multipleStatements: true // 여러 문장을 허용
-    });
-
-    const initSql = fs.readFileSync('./db/init.sql', 'utf-8');
-    await connection.query(initSql);
-    await connection.end();
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Error initializing database:', error);
-  }
-};
+// morgan 미들웨어 설정
+app.use(morgan('dev'));
 
 // 세션 설정
 app.use(session({
@@ -38,10 +23,35 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-auth(passport); // sets button click functionalities
+auth(passport); // GitHub OAuth 설정
 
 // 초기화 실행
 initializeDatabase();
+
+// 미들웨어: Authorization 헤더에서 access_token을 읽고 req.user에 설정
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const accessToken = authHeader.split(' ')[1];
+    req.user = { access_token: accessToken };
+  }
+  next();
+});
+
+// 라우트 설정
+const githubRoutes = require('./routes/github');
+const milestoneRoutes = require('./routes/milestones');
+const issueRoutes = require('./routes/issues');
+const labelRoutes = require('./routes/labels');
+const commitRoutes = require('./routes/commits');
+const tilRoutes = require('./routes/tils');
+
+app.use('/github', githubRoutes);
+app.use('/milestones', milestoneRoutes);
+app.use('/issues', issueRoutes);
+app.use('/labels', labelRoutes);
+app.use('/commits', commitRoutes);
+app.use('/tils', tilRoutes);
 
 // 기본 라우트
 app.get('/', (req, res) => {
@@ -56,7 +66,9 @@ app.get('/auth/github',
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/profile');
+    const gitcatSecret = process.env.GITCAT_SECRET;
+    const userId = req.user.id; // Ensure userId is available from req.user
+    res.redirect('gitcat://loginsuccess?user_id='+userId+'&gitcat_secret='+gitcatSecret);
   },
   (err, req, res, next) => {
     console.error('Error during GitHub authentication', err);
