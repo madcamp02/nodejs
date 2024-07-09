@@ -55,7 +55,9 @@ app.get('/auth/github',
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/profile');
+    const gitcatSecret = process.env.GITCAT_SECRET;
+    const userId = req.user.id; // Ensure userId is available from req.user
+    res.redirect('gitcat://loginsuccess?user_id='+userId+'&gitcat_secret='+gitcatSecret);
   },
   (err, req, res, next) => {
     console.error('Error during GitHub authentication', err);
