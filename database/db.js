@@ -1,10 +1,10 @@
-import mysql from 'mysql2/promise';
-import fs from 'fs';
-import path from 'path';
-import dotenv from 'dotenv';
-dotenv.config()
+const mysql = require('mysql2/promise');
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+dotenv.config();
 
-export const db = mysql.createPool({
+const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
@@ -12,7 +12,7 @@ export const db = mysql.createPool({
   multipleStatements: true
 });
 
-export const initializeDatabase = async () => {
+const initializeDatabase = async () => {
   try {
     const connection = await db.getConnection();
     const initSql = fs.readFileSync(path.resolve('database/init.sql'), 'utf-8');
@@ -22,4 +22,9 @@ export const initializeDatabase = async () => {
   } catch (error) {
     console.error('Error initializing database:', error);
   }
+};
+
+module.exports = {
+  db,
+  initializeDatabase
 };

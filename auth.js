@@ -1,10 +1,8 @@
-import passport from 'passport';
-import { Strategy as GitHubStrategy } from 'passport-github2';
-import dotenv from 'dotenv';
-dotenv.config();
-import { db } from './database/db.js';
-
-
+const passport = require('passport');
+const GitHubStrategy = require('passport-github2').Strategy;
+const mysql = require('mysql2/promise');
+require('dotenv').config();
+const { db } = require('./database/db.js');
 const configurePassport = (passport) => {
   passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
@@ -44,4 +42,4 @@ const configurePassport = (passport) => {
   });
 };
 
-export default configurePassport
+module.exports = configurePassport;
