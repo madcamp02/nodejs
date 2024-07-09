@@ -73,26 +73,25 @@ async function retrieveOwnersAndRepos(req, res) {
       }
       let current_repo_list = [];
       console.log('repo_id_list', owner.repo_id_list);
-      let repo_id_list = Array.isArray(owner.repo_id_list) ? owner.repo_id_list : [];
-      if (repo_id_list.length > 0) {
-        current_repo_list = await model.GetRepoListByRepoIdList(repo_id_list);
+      if (owner.repo_id_list.length > 0) {
+        current_repo_list = await model.GetRepoListByRepoIdList(owner.repo_id_list);
       }
+      const current_repo_id_list = current_repo_list.map(repo => repo.repo_id);
       const current_repo_github_id_list = current_repo_list.map(repo => repo.repo_github_id);
-      
+
       console.log('repos:', repos);
-      console.log('current_repo_id_list:', current_repo_github_id_list);
       const to_add_repo_list = repos.filter(repo => !current_repo_github_id_list.includes(repo.id));
     
-      let repo_github_id_list = current_repo_github_id_list;
+      let repo_id_list = current_repo_id_list;
       for (const to_add_repo of to_add_repo_list) {
         const [result] = await db.execute('INSERT INTO Repositories (owner_github_id, repo_github_id, repo_name, repo_url) VALUES (?, ?, ?, ?)', [owner.owner_github_id, to_add_repo.id, to_add_repo.name, to_add_repo.html_url]);
-        repo_github_id_list.push(result.insertId);
+        repo_id_list.push(result.insertId);
       }
     
-      await db.execute('UPDATE Owners SET repo_id_list = ? WHERE owner_github_id = ?', [JSON.stringify(repo_github_id_list), owner.owner_github_id]);
+      await db.execute('UPDATE Owners SET repo_id_list = ? WHERE owner_github_id = ?', [JSON.stringify(repo_id_list), owner.owner_github_id]);
       
-      console.log('repo_github_id_list', repo_github_id_list);
-      const updated_repo_list = await model.GetRepoListByRepoIdList(repo_github_id_list);
+      console.log('repo_id_list', repo_id_list);
+      const updated_repo_list = await model.GetRepoListByRepoIdList(repo_id_list);
       ownersRepos.push({
         owner: owner,
         repoList: updated_repo_list
