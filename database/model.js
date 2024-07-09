@@ -23,6 +23,15 @@ const model = {
         }
     },
 
+    GetAllOwnerList: async () => {
+        try {
+            const [rows] = await db.execute('SELECT * FROM Owners');
+            return rows;
+        } catch (error) {
+            throw new Error('Error fetching all owner_list from the database');
+        }
+    },
+
     GetOwnerByOwnerGithubId: async (owner_github_id) => {
         try {
             const [rows] = await db.execute('SELECT * FROM Owners WHERE owner_github_id = ?', [owner_github_id]);

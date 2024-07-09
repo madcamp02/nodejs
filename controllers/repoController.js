@@ -29,20 +29,23 @@ async function retrieveOwnersAndRepos(req, res) {
     let owner_id_list = Array.isArray(user.owner_id_list) ? user.owner_id_list : [];
     
     // Fetch current owner list if owner_id_list is not empty
-    let current_owner_list = [];
-    if (owner_id_list.length > 0) {
-      current_owner_list = await model.GetOwnerListByOwnerIdList(owner_id_list);
-    }
-    const current_owner_github_id_list = current_owner_list.map(owner => owner.owner_github_id);
+    const all_owner_list = await model.GetAllOwnerList();
+    const existing_owner_github_id_list = all_owner_list.map(owner => owner.owner_github_id);
+    // let current_owner_list = [];
+    // if (owner_id_list.length > 0) {
+    //   current_owner_list = await model.GetOwnerListByOwnerIdList(owner_id_list);
+    // }
+    // const current_owner_github_id_list = current_owner_list.map(owner => owner.owner_github_id);
     
     // Filter organizations to add new owners
-    const to_add_owner_list = organizations.filter(organization => !current_owner_github_id_list.includes(organization.id));
-    console.log('to_add_owner_list', to_add_owner_list);
-
-    // Insert new owners into the database and update owner_id_list
-    for (const to_add_owner of to_add_owner_list) {
-      const [result] = await db.execute('INSERT INTO Owners (owner_github_id, owner_name, repo_id_list) VALUES (?, ?, ?)', [to_add_owner.id, to_add_owner.login, '[]']);
-      owner_id_list.push(result.insertId);
+    for (const to_add_owner of organizations){
+      if(existing_owner_github_id_list.includes(to_add_owner.id)){ // others already registered the org
+        const ownerId = (await model.GetOwnerByOwnerGithubId(to_add_owner.id)).owner_id;
+        if(!owner_id_list.includes(ownerId)) owner_id_list.push(ownerId);
+      }else{
+        const [result] = await db.execute('INSERT INTO Owners (owner_github_id, owner_name, repo_id_list) VALUES (?, ?, ?)', [to_add_owner.id, to_add_owner.login, '[]']);
+        owner_id_list.push(result.insertId);
+      }
     }
     
     // Update the user's owner_id_list in the database
@@ -77,15 +80,20 @@ async function retrieveOwnersAndRepos(req, res) {
         current_repo_list = await model.GetRepoListByRepoIdList(owner.repo_id_list);
       }
       const current_repo_id_list = current_repo_list.map(repo => repo.repo_id);
-      const current_repo_github_id_list = current_repo_list.map(repo => repo.repo_github_id);
 
-      console.log('repos:', repos);
-      const to_add_repo_list = repos.filter(repo => !current_repo_github_id_list.includes(repo.id));
+      // console.log('repos:', repos);
     
       let repo_id_list = current_repo_id_list;
-      for (const to_add_repo of to_add_repo_list) {
-        const [result] = await db.execute('INSERT INTO Repositories (owner_github_id, repo_github_id, repo_name, repo_url) VALUES (?, ?, ?, ?)', [owner.owner_github_id, to_add_repo.id, to_add_repo.name, to_add_repo.html_url]);
-        repo_id_list.push(result.insertId);
+      for (const to_add_repo of repos) {
+        const [rows] = await db.execute('SELECT * FROM Repositories WHERE owner_github_id = ? AND repo_github_id = ?', [owner.owner_github_id, to_add_repo.id]);
+        if(rows.length != 0){
+          const repoId = rows[0].repo_id;
+          if(!repo_id_list.includes(repoId)) repo_id_list.push(result.insertId);
+        }else{
+          const [result] = await db.execute('INSERT INTO Repositories (owner_github_id, repo_github_id, repo_name, repo_url) VALUES (?, ?, ?, ?)', [owner.owner_github_id, to_add_repo.id, to_add_repo.name, to_add_repo.html_url]);
+          repo_id_list.push(result.insertId);
+        }
+        
       }
     
       await db.execute('UPDATE Owners SET repo_id_list = ? WHERE owner_github_id = ?', [JSON.stringify(repo_id_list), owner.owner_github_id]);
@@ -98,7 +106,7 @@ async function retrieveOwnersAndRepos(req, res) {
       });
     }
 
-    console.log('ownersRepos', ownersRepos);
+    // console.log('ownersRepos', ownersRepos);
     res.status(200).json({ status: 'success', ownersRepos: ownersRepos });
   } catch (error) {
     console.error('Error fetching owners and repos:', error);
