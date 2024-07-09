@@ -22,7 +22,9 @@ async function retrieveOwnersAndRepos(req, res) {
     });
     
     // Fetch organizations the user is a part of
-    const { data: organizations } = await octokit.orgs.listForAuthenticatedUser();
+    const response = await octokit.orgs.listForAuthenticatedUser();
+    const organizations = response.data;
+    console.log('response:', response);
     console.log('organizations:', organizations);
     
     // Initialize owner_id_list if it's not already an array
