@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS Users (
     user_name VARCHAR(255) NOT NULL,
     user_github_id BIGINT UNIQUE,
     access_token VARCHAR(255) NOT NULL,
-    owner_id_list JSON
+    owner_id_list JSON NOT NULL
 );
 
 -- Owner 테이블 생성
@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS Owners (
     is_organization TINYINT(1) NOT NULL DEFAULT 0,
     owner_github_id BIGINT UNIQUE,
     owner_name VARCHAR(255) NOT NULL,
-    repo_id_list JSON
+    repo_id_list JSON NOT NULL
 );
 
 -- Repository 테이블 생성
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS Issues (
     issue_title VARCHAR(255) NOT NULL,
     issue_state TINYINT(1),
     mlstn_id BIGINT,
-    label_id_list JSON,
+    label_id_list JSON NOT NULL,
     owner_github_id BIGINT,
     repo_github_id BIGINT,
     issue_github_id BIGINT,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS Commits (
     commit_msg TEXT,
     commit_date DATETIME,
     til_id BIGINT DEFAULT NULL,
-    issue_id_list JSON,
+    issue_id_list JSON NOT NULL,
     owner_github_id BIGINT,
     repo_github_id BIGINT,
     commit_github_id CHAR(40),

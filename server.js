@@ -36,8 +36,8 @@ app.use((req, res, next) => {
 });
 
 // 라우트 설정
-import repoRouter from './routes/repoRouter.js'; // Importing repoRouter
-app.use('/gitcat', repoRouter); // Using repoRouter
+import gitcatRouter from './routes/gitcatRouter.js'; // Importing repoRouter
+app.use('/gitcat', gitcatRouter); // Using repoRouter
 
 
 
@@ -76,9 +76,10 @@ app.get('/auth/github',
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
+    console.log('USER\nUSER\nUSER\nUSER\nUSER\n', req.user);
     const gitcatSecret = process.env.GITCAT_SECRET;
-    const userId = req.user.id; // Ensure userId is available from req.user
-    res.redirect('gitcat://loginsuccess?user_id='+userId+'&gitcat_secret='+gitcatSecret);
+    const userGithubId = req.user.id; // Ensure userId is available from req.user
+    res.redirect('gitcat://loginsuccess?user_github_id='+userGithubId+'&gitcat_secret='+gitcatSecret);
   },
   (err, req, res, next) => {
     console.error('Error during GitHub authentication', err);

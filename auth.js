@@ -19,18 +19,16 @@ const configurePassport = (passport) => {
       const githubId = profile.id;
       const username = profile.username;
 
-      let user;
       // 사용자 정보 데이터베이스에 저장 또는 업데이트
       const [rows] = await db.execute('SELECT * FROM Users WHERE user_github_id = ?', [githubId]);
       if (rows.length === 0) {
-        const [result] = await db.execute('INSERT INTO Users (user_github_id, access_token, user_name) VALUES (?, ?, ?)', [githubId, accessToken, username]);
-        user = { id: result.insertId, user_github_id: githubId, access_token: accessToken, user_name: username };
-        console.log('insert ID:', user.id);
+        const [result] = await db.execute('INSERT INTO Owners (owner_github_id, owner_name, repo_id_list) VALUES (?, ?, ?)', [githubId, username, '[]']);
+        const ownerIdListJSON = JSON.stringify([result.insertId]);
+        await db.execute('INSERT INTO Users (user_github_id, access_token, user_name, owner_id_list) VALUES (?, ?, ?, ?)', [githubId, accessToken, username, ownerIdListJSON]);
       } else {
         await db.execute('UPDATE Users SET access_token = ? WHERE user_github_id = ?', [accessToken, githubId]);
-        user = { ...rows[0], access_token: accessToken };
       }
-      return done(null, user);
+      return done(null, profile);
     } catch (err) {
       console.log('auth.js:', err);
       return done(err);
