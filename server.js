@@ -1,32 +1,14 @@
-require('dotenv').config();
-const fs = require('fs');
-const express = require('express');
-const passport = require('passport');
-const session = require('express-session');
-const mysql = require('mysql2/promise');
-const auth = require('./auth');
+import fs from 'fs';
+import express from 'express';
+import passport from 'passport';
+import session from 'express-session';
+import { initializeDatabase } from './database/db.js';
+import configurePassport from './auth.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = express();
 const PORT = 3000;
-
-// MySQL 초기화 함수
-const initializeDatabase = async () => {
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: 'root',
-      password: process.env.DB_PASSWORD,
-      multipleStatements: true // 여러 문장을 허용
-    });
-
-    const initSql = fs.readFileSync('./db/init.sql', 'utf-8');
-    await connection.query(initSql);
-    await connection.end();
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Error initializing database:', error);
-  }
-};
 
 // 세션 설정
 app.use(session({
@@ -38,18 +20,57 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-auth(passport); // sets button click functionalities
+configurePassport(passport); // GitHub OAuth 설정
 
 // 초기화 실행
 initializeDatabase();
+
+// 미들웨어: Authorization 헤더에서 access_token을 읽고 req.user에 설정
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const accessToken = authHeader.split(' ')[1];
+    req.user = { access_token: accessToken };
+  }
+  next();
+});
+
+// 라우트 설정
+import repoRouter from './routes/repoRouter.js'; // Importing repoRouter
+app.use('/gitcat', repoRouter); // Using repoRouter
+
+
 
 // 기본 라우트
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to GitCat</h1><a href="/auth/github">Login with GitHub</a>');
 });
+
 // GitHub 인증 라우트
 app.get('/auth/github',
-  passport.authenticate('github', { scope: ['user:email'] })
+  passport.authenticate('github', { scope: [
+    'repo',
+    'repo_deployment',
+    'repo:status',
+    'read:repo_hook',
+    'write:repo_hook',
+    'admin:repo_hook',
+    'read:org',
+    'write:org',
+    'admin:org',
+    'admin:org_hook',
+    'gist',
+    'notifications',
+    'user',
+    'read:user',
+    'user:email',
+    'user:follow',
+    'delete_repo',
+    'write:discussion',
+    'read:discussion',
+    'admin:enterprise',
+    'workflow'
+  ] })
 );
 
 app.get('/auth/github/callback',
