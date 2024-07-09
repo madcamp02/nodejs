@@ -38,7 +38,6 @@ CREATE TABLE IF NOT EXISTS Milestones (
     mlstn_title VARCHAR(255) NOT NULL,
     mlstn_due DATE,
     mlstn_descr VARCHAR(255),
-    repo_id BIGINT,
     owner_github_id BIGINT,
     repo_github_id BIGINT,
     mlstn_github_id BIGINT,
