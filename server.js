@@ -1,34 +1,17 @@
-require('dotenv').config();
-const fs = require('fs');
-const express = require('express');
-const passport = require('passport');
-const session = require('express-session');
-const mysql = require('mysql2/promise');
-const auth = require('./auth');
+import 'dotenv/config';
+import fs from 'fs';
+import express from 'express';
+import passport from 'passport';
+import session from 'express-session';
+import morgan from 'morgan';
+import { initializeDatabase } from './models/db.js';
+import configurePassport from './auth.js';
 
 const app = express();
 const PORT = 3000;
 
-// MySQL 초기화 함수
-const initializeDatabase = async () => {
-  try {
-    const connection = await mysql.createConnection({
-      host: process.env.DB_HOST,
-      user: 'root',
-      password: process.env.DB_PASSWORD,
-      multipleStatements: true // 여러 문장을 허용
-    });
+app.use(morgan('dev'));
 
-    const initSql = fs.readFileSync('./db/init.sql', 'utf-8');
-    await connection.query(initSql);
-    await connection.end();
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Error initializing database:', error);
-  }
-};
-
-// 세션 설정
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -38,25 +21,69 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-auth(passport); // sets button click functionalities
+configurePassport(passport);
 
-// 초기화 실행
 initializeDatabase();
 
-// 기본 라우트
+app.use((req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const accessToken = authHeader.split(' ')[1];
+    req.user = { access_token: accessToken };
+  }
+  next();
+});
+
+import repoRoutes from './routes/repo.js';
+import milestoneRoutes from './routes/milestones.js';
+import issueRoutes from './routes/issues.js';
+import labelRoutes from './routes/labels.js';
+import commitRoutes from './routes/commits.js';
+import tilRoutes from './routes/tils.js';
+
+app.use('/repo', repoRoutes);
+app.use('/milestones', milestoneRoutes);
+app.use('/issues', issueRoutes);
+app.use('/labels', labelRoutes);
+app.use('/commits', commitRoutes);
+app.use('/tils', tilRoutes);
+
 app.get('/', (req, res) => {
   res.send('<h1>Welcome to GitCat</h1><a href="/auth/github">Login with GitHub</a>');
 });
 
-// GitHub 인증 라우트
 app.get('/auth/github',
-  passport.authenticate('github', { scope: ['user:email'] })
+  passport.authenticate('github', { scope: [
+    'repo',
+    'repo_deployment',
+    'repo:status',
+    'read:repo_hook',
+    'write:repo_hook',
+    'admin:repo_hook',
+    'read:org',
+    'write:org',
+    'admin:org',
+    'admin:org_hook',
+    'gist',
+    'notifications',
+    'user',
+    'read:user',
+    'user:email',
+    'user:follow',
+    'delete_repo',
+    'write:discussion',
+    'read:discussion',
+    'admin:enterprise',
+    'workflow'
+  ] })
 );
 
 app.get('/auth/github/callback',
   passport.authenticate('github', { failureRedirect: '/' }),
   (req, res) => {
-    res.redirect('/profile');
+    const gitcatSecret = process.env.GITCAT_SECRET;
+    const userId = req.user.id; // Ensure userId is available from req.user
+    res.redirect(`gitcat://loginsuccess?user_id=${userId}&gitcat_secret=${gitcatSecret}`);
   },
   (err, req, res, next) => {
     console.error('Error during GitHub authentication', err);
@@ -72,7 +99,6 @@ app.get('/profile', (req, res) => {
   }
 });
 
-// 서버 시작
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

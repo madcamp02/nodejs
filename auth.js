@@ -1,7 +1,9 @@
-const passport = require('passport');
-const GitHubStrategy = require('passport-github2').Strategy;
-const mysql = require('mysql2/promise');
-require('dotenv').config();
+import passport from 'passport';
+import { Strategy as GitHubStrategy } from 'passport-github2';
+import mysql from 'mysql2/promise';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // MySQL 연결 설정
 const db = mysql.createPool({
@@ -11,7 +13,7 @@ const db = mysql.createPool({
   database: process.env.DB_NAME,
 });
 
-module.exports = (passport) => {
+const configurePassport = (passport) => {
   passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,
     clientSecret: process.env.GITHUB_CLIENT_SECRET,
@@ -48,3 +50,5 @@ module.exports = (passport) => {
     done(null, obj);
   });
 };
+
+export default configurePassport;
