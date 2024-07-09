@@ -5,13 +5,13 @@ dotenv.config();
 
 async function retrieveOwnersAndRepos(req, res) {
   try {
+    console.log('retrieving...');
     const { user_github_id, gitcat_secret } = req.query;
     if (!user_github_id || !gitcat_secret) throw new Error('user_github_id or gitcat_secret is not given');
     if (gitcat_secret != process.env.GITCAT_SECRET) throw new Error('gitcat_secret does not match!');
 
     const user = await model.GetUserByUserGithubId(user_github_id);
     console.log('USER', user);
-    if (req.query.user_name != user.user_name) throw new Error('user_name mismatch'); // name change not considered
 
     // Dynamic import for @octokit/rest
     const { Octokit } = await import('@octokit/rest');
@@ -47,8 +47,7 @@ async function retrieveOwnersAndRepos(req, res) {
       });
     }
     console.log(ownersRepos);
-
-    res.json({ status: 'success', ownersRepos: ownersRepos });
+    res.status(200).json({ status: 'success', ownersRepos: ownersRepos });
   } catch (error) {
     console.error('Error fetching owners and repos:', error);
     res.status(500).json({ status: 'error', message: error.message });

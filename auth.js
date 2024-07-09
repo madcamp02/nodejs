@@ -3,6 +3,7 @@ const GitHubStrategy = require('passport-github2').Strategy;
 const mysql = require('mysql2/promise');
 require('dotenv').config();
 const { db } = require('./database/db.js');
+
 const configurePassport = (passport) => {
   passport.use(new GitHubStrategy({
     clientID: process.env.GITHUB_CLIENT_ID,

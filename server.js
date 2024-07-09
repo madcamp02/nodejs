@@ -36,7 +36,29 @@ app.get('/', (req, res) => {
 
 // GitHub 인증 라우트
 app.get('/auth/github',
-  passport.authenticate('github', { scope: ['user:email'] })
+  passport.authenticate('github', { scope: [
+    'repo',
+    'repo_deployment',
+    'repo:status',
+    'read:repo_hook',
+    'write:repo_hook',
+    'admin:repo_hook',
+    'read:org',
+    'write:org',
+    'admin:org',
+    'admin:org_hook',
+    'gist',
+    'notifications',
+    'user',
+    'read:user',
+    'user:email',
+    'user:follow',
+    'delete_repo',
+    'write:discussion',
+    'read:discussion',
+    'admin:enterprise',
+    'workflow'
+  ] })
 );
 
 app.get('/auth/github/callback',
