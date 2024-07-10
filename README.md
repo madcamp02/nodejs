@@ -55,7 +55,102 @@
 
 ### **이렇게 만들었어요🧐🧐**
 
-[GitCat — DB구조 (1)](https://www.notion.so/GitCat-DB-1-983bd78185384ee595fab1ba4373c342?pvs=21)
+# 제목 없음
+
+## Users DB
+
+| Name | Data Type |
+| --- | --- |
+| user_id | BIGINT AUTO_INCREMENT PRIMARY KEY |
+| user_name | VARCHAR (255) NOT NULL |
+| access_token | VARCHAR (255) NOT NULL |
+| List<owner_id> | JSON |
+| user_github_id | BIGINT |
+
+## Owners DB — (User와 organization의 추상화 개념)
+
+| Name | Data Type | description |
+| --- | --- | --- |
+| owner_id | BIGINT |  |
+| is_organization | TINYINT (1) NOT NULL DEFAULT 0 | 0 / 1 |
+| owner_name | VARCHAR (255) NOT NULL | “My Repos”(1) 이거나 organization_name(0) |
+| List<repo_id> | JSON |  |
+| owner_github_id | BIGINT | user_github_id(1) 이거나
+organization_github_id (0) |
+
+## Repositories DB — almost consistent (better in DB)
+
+| Name | Data Type |
+| --- | --- |
+| repo_id | BIGINT AUTO_INCREMENT PRIMARY KEY |
+| repo_name | VARCHAR (255) NOT NULL |
+| repo_url | VARCHAR (255) NOT NULL |
+| owner_github_id | BIGINT |
+| repo_github_id | BIGINT |
+
+## Milestones DB
+
+| Name | Data Type |
+| --- | --- |
+| mlstn_id | BIGINT AUTO_INCREMENT PRIMARY KEY |
+| mlstn_state | TINYINT (1) |
+| mlstn_title | VARCHAR (255) NOT NULL |
+| mlstn_due | DATE |
+| mlstn_descr | VARCHAR (255) |
+| repo_id | BIGINT |
+| owner_github_id | BIGINT |
+| repo_github_id | BIGINT |
+| mlstn_github_id | BIGINT |
+
+## Issues DB
+
+| Name | Data Type |
+| --- | --- |
+| issue_id | BIGINT AUTO_INCREMENT PRIMARY KEY |
+| issue_title | VARCHAR (255) NOT NULL |
+| issue_state | TINYINT (1) |
+| mlstn_id | BIGINT |
+| List<label_id> | JSON |
+| owner_github_id | BIGINT |
+| repo_github_id | BIGINT |
+| issue_github_id | BIGINT |
+
+## Labels DB
+
+| Name | Data Type |
+| --- | --- |
+| label_id | BIGINT |
+| label_name | VARCHAR (50) |
+| label_color | VARCHAR (7) |
+| owner_github_id | BIGINT |
+| repo_github_id | BIGINT |
+| label_github_id | BIGINT |
+
+## Commits DB
+
+| Name | Data Type |  |
+| --- | --- | --- |
+| commit_id | BIGINT AUTO_INCREMENT PRIMARY KEY |  |
+| ai_labeled | TINYINT (1) | whether ai has labeled related existing issues |
+| commit_msg | TEXT |  |
+| commit_date | DATETIME |  |
+| commit_image | URI |  |
+| til_id | BIGINT DEFAULT null |  |
+| List<issue_id> | JSON |  |
+| owner_github_id | BIGINT |  |
+| repo_github_id | BIGINT |  |
+| commit_github_id | BIGINT |  |
+
+## TILs DB
+
+| Name | Data Type |
+| --- | --- |
+| til_id | BIGINT AUTO_INCREMENT PRIMARY KEY |
+| user_id | BIGINT |
+| til_content | TEXT |
+| commit_id | BIGINT |
+| commit_msg | TEXT |
+| commit_date | DATETIME |
 
 [GitCat — API 명세서 (1)](https://www.notion.so/GitCat-API-1-42e96621e0f84264972d3c226f7a5310?pvs=21)
 
