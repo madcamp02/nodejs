@@ -1,5 +1,3 @@
-# 제목 없음
-
 ### Outline
 
 ---
@@ -24,15 +22,12 @@
 
 [강지원](https://www.notion.so/80c097661e54455ea0c6f814cbe252db?pvs=21)
 
-[jidnjs - Overview](https://github.com/jidnjs)
 
 [박지은](https://www.notion.so/051da53833934d7086132ba53b4118cb?pvs=21)
 
-[jieunyy - Overview](https://github.com/jieunyy)
 
 [SadCamp](https://www.notion.so/SadCamp-cc25de5257fe4849be645a4c02e98353?pvs=21) 
 
-[sadcamp](https://github.com/sadcamp)
 
 ### Tech Stack
 
