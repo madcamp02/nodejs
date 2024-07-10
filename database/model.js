@@ -42,6 +42,16 @@ const model = {
         }
     },
 
+    GetRepoByRepoGithubId: async (owner_github_id, repo_github_id) => {
+        try {
+            const [rows] = await db.execute('SELECT * FROM Repositories WHERE owner_github_id = ? AND repo_github_id = ?', [owner_github_id, repo_github_id]);
+            if (rows.length !== 1) throw new Error('duplicated, or missing ownerId');
+            return rows[0];
+        } catch (error) {
+            throw new Error('Error fetching owner from the database');
+        }
+    },
+
     GetRepoListByRepoIdList: async (repo_id_list) => {
         try {
             const placeholders = repo_id_list.map(() => '?').join(',');
